@@ -40,14 +40,14 @@ def FormatoNombres(x):
 def RevisarMaterias(cursosDiccionario):
     global variableCursos
     z = False
-    for curso in cursosDiccionario:
+    for index, curso in enumerate(cursosDiccionario):
         if cursosDiccionario[curso]["nombre"] not in listaCursos:
             listaCursos.append(cursosDiccionario[curso]["nombre"])
-        numeroCurso = curso.find(f"{variableCursos}")
-        if numeroCurso != -1:
-            variableCursos += 1
+        if (f"curso{index + 1}") != curso:
+            curso = f"curso{index + 1}"
         z = True
     if z == True:
+        variableCursos = len(cursosDiccionario) + 1
         return True
     else:
         return False
@@ -476,6 +476,7 @@ def generarHorarios(cursosDiccionario):
     Cursos = list(diccionario.values())
     varcomp = 1
     n = 1
+    imp = 0
     while True:
         invalido = False
         dias = []
@@ -506,6 +507,9 @@ def generarHorarios(cursosDiccionario):
                     if variableFor2 - 1 == index:
                         if value != int(gruposSeleccion[indexcurso]):
                             invalido = True
+            if cursosSeleccion == [] and imp == 0:
+                print("No hay materias con cursos seleccionados. Seleccione cursos.\n Imprimiendo solo combinaciones válidas..")
+                imp = 1
                 
     
         for i in combinaciones:
@@ -583,6 +587,9 @@ def generarHorarios(cursosDiccionario):
                 
                 
         else:
+            if combinacionesValidas == []:
+                print("No hay combinaciones válidas. Intente deseleccionar grupos con conflictos")
+                return []
             print(f"Hay {variablecombinacionesValidas} combinaciones válidas:")
             listaComb = combinacionesValidas.copy()
             variableCurso = 0
@@ -617,12 +624,17 @@ def generarHorarios(cursosDiccionario):
 def pedirMenu():
     try:
         materiasDisponibles = RevisarMaterias(cursosDiccionario) 
-        menu = input("---------MENU--------------: \n[1] Ingresar una materia \n[2] Ver materias y grupos \n[3] Generar horarios \n[4] Revisar diccionario madre\n[5] Salir\n")
+        menu = input("---------MENU--------------: \n[1] Ingresar una materia \n[2] Ver materias y grupos \n[3] Generar horarios \n[4] Salir\n")
         while int(menu) not in range(1,6):
             raise Exception
         return menu, materiasDisponibles
     except KeyboardInterrupt:
-        print("\n\nCerrando...")
+        guardar = input("Desea guardar la información? 1. Si, 2. No")
+        if int(guardar) == 1:
+            print("")
+            with open("info.json", "w") as f:
+                json.dump(cursosDiccionario, f, indent=4)
+        print("\nCerrando...")
         return False
     except:
         print("\n\nOpción inválida, intente de nuevo")
@@ -687,6 +699,17 @@ def agregarTurnoGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes):
     cursoActual["grupos"][grupomodificar]["hora"].append(horaFormateada)   
     print(f"Nuevo horario agregado: {dia}, de {horaString}")
 
+def eliminarMateria(cursosDiccionario, materiaSeleccionada):
+    global listaCursos
+    a = input("ALERTA! Está a punto de eliminar una materia, está seguro de esto? Digite 'Y' para sí, de lo contrario no se eliminará")
+    if a != 'Y':
+        return 
+    else:
+        print("\n")
+        nombre = cursosDiccionario[materiaSeleccionada]["nombre"]
+        cursosDiccionario.pop(materiaSeleccionada, None)
+        print(f"Materia {nombre} eliminada")
+        listaCursos.remove(nombre)
 
 try:
     with open("info.json", "r") as f:
@@ -728,14 +751,15 @@ while True:
             gruposexistentes = revisarGrupos(cursosDiccionario, nombreMateria)
             while True:
                 try:
-                    decision = input("Qué desea hacer?\n[1] Agregar grupo\n[2] Eliminar grupo\n[3] Modificar grupo\n[4] (De)Seleccionar grupo\n[5] Modificar nombre\n[6] Agregar otro turno a un grupo")
+                    decision = input("Qué desea hacer?\n[1] Agregar grupo\n[2] Eliminar grupo\n[3] Modificar grupo\n[4] Seleccionar / deseleccionar grupo\n[5] Agregar otro dia de grupo\n===========\n[6] Modificar nombre de materia\n[7] Eliminar materia")
                     match decision:
                         case "1": agregarGrupo(cursosDiccionario, materiaSeleccionada)
                         case "2": eliminarGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes)
                         case "3": modificarGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes)
                         case "4": seleccionarGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes)
-                        case "5":  modificarNombre(cursosDiccionario,materiaSeleccionada)
-                        case "6": agregarTurnoGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes)
+                        case "6":  modificarNombre(cursosDiccionario,materiaSeleccionada)
+                        case "5": agregarTurnoGrupo(cursosDiccionario,materiaSeleccionada,gruposexistentes)
+                        case "7": eliminarMateria(cursosDiccionario,materiaSeleccionada)
                         case _: raise ValueError
                     break
                 except KeyboardInterrupt:
@@ -748,8 +772,6 @@ while True:
         case "3":
             combinacionesValidas = generarHorarios(cursosDiccionario)
         case "4":
-            print(json.dumps(cursosDiccionario, indent=4))
-        case "5":
             guardar = input("Desea guardar la información? 1. Si, 2. No")
             if int(guardar) == 1:
                 print("")

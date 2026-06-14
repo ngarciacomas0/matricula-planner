@@ -29,7 +29,7 @@
                 ],
                 "profesor": "Chevere",
                 "nrc": 1418,
-                "sele": true
+                "sele": false
             },
             "3": {
                 "dia": "Viernes",
@@ -43,7 +43,7 @@
             }
         },
         "variablegrupos": 4,
-        "gsele": true
+        "gsele": false
     },
     "curso2": {
         "nombre": "Ecuaciones",
