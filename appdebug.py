@@ -1,4 +1,5 @@
 import json
+import statistics
 cursosDiccionario = {}
 variableCursos = 1
 listaCursos = []
@@ -589,7 +590,7 @@ def generarHorarios(cursosDiccionario):
                 
         else:
             if combinacionesValidas == []:
-                print("No hay combinaciones válidas. Intente deseleccionar grupos con conflictos")
+                print("No hay combinaciones válidas. Intente deseleccionar grupos compatibles")
                 return []
             listaComb = combinacionesValidas.copy()
             listaCombOrdenada = []
@@ -674,7 +675,7 @@ def generarHorarios(cursosDiccionario):
                             listaCombOrdenada.sort(key=func)
                             listaCombOrdenada.reverse()
                             if horastotales == 0:
-                                print("No hay clases en la tarde")
+                                print("No hay clases en la tarde. Imprimiendo combinaciones sin ordenar...\n")
                                 ordenar = 5
                             else:
                                 listaCombOrdenada2 = []
@@ -682,12 +683,63 @@ def generarHorarios(cursosDiccionario):
                                     listaCombOrdenada2.append(i["list"])
                                 listaComb = listaCombOrdenada2
                         case "3":
-                            ordenar = 3
-                            print("Balanceo de horas")
+                            ordenar = 2
+                            listaCombOrdenada = []
+                            variableCurso = 0
+                            horastotales = 0
+                            for i in listaComb:
+                                horasOrdenadas = [0] * 5
+                                variableCurso = 0
+                                for z in i:
+                                    variableCurso += 1
+                                    grupoActual = cursosDiccionario[f"curso{variableCurso}"]["grupos"][f"{z}"]
+                                    diaActual = grupoActual["dia"]
+                                    horass = grupoActual["hora"]
+                                    if type(horass[0]) == type([1,2]):
+                                        for index, h in enumerate(diaActual):
+                                            listaHoras = horass[index]
+                                            a = listaHoras[0]
+                                            b = listaHoras[1]
+                                            c = int(b) - int(a)
+                                            match h:
+                                                case "Lunes": 
+                                                    horasOrdenadas[0] += c
+                                                case "Martes":
+                                                    horasOrdenadas[1] += c
+                                                case "Miercoles":
+                                                    horasOrdenadas[2] += c
+                                                case "Jueves":
+                                                    horasOrdenadas[3] += c
+                                                case "Viernes":
+                                                    horasOrdenadas[4] += c
+                                    else:
+                                            a = horass[0]
+                                            b = horass[1]
+                                            c = int(b) - int(a)
+                                            match diaActual:
+                                                case "Lunes": 
+                                                    horasOrdenadas[0] += c
+                                                case "Martes":
+                                                    horasOrdenadas[1] += c
+                                                case "Miercoles":
+                                                    horasOrdenadas[2] += c
+                                                case "Jueves":
+                                                    horasOrdenadas[3] += c
+                                                case "Viernes":
+                                                    horasOrdenadas[4] += c
+                                desv = statistics.stdev(horasOrdenadas)
+                                listaCombOrdenada.append({"list": i, "desv": desv})
+                            def func(e):
+                                return e["desv"]
+                            listaCombOrdenada.sort(key=func)
+                            listaCombOrdenada2 = []
+                            for i in listaCombOrdenada:
+                                    listaCombOrdenada2.append(i["list"])
+                            listaComb = listaCombOrdenada2
                         case "4":
                             ordenar = 4
                         case "5":
-                            print("Imprimiendo combinaciones sin ordenar...")
+                            print("Imprimiendo combinaciones sin ordenar...\n")
                             ordenar = 5
                         case _:
                             raise Exception
