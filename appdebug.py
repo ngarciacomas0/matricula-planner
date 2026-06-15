@@ -456,7 +456,7 @@ def generarHorarios(cursosDiccionario):
     cursosActuales = variableCursos - 1
     settings = 4
     while settings not in range(1,4):
-        settings = input("Desea algún ajuste?\n[1] Mostrar combinaciones con días libres\n[2] Mostrar combinaciones solo con los cursos seleccionados\n")
+        settings = input("Desea algún ajuste?\n[1] Mostrar combinaciones con días libres\n[2] Mostrar combinaciones solo con los cursos seleccionados\n[3] Ninguno\n")
         match int(settings):
             case 1: 
                 settings = 1
@@ -584,16 +584,121 @@ def generarHorarios(cursosDiccionario):
                     n = 1
                     break
                 
+        
                 
                 
         else:
             if combinacionesValidas == []:
                 print("No hay combinaciones válidas. Intente deseleccionar grupos con conflictos")
                 return []
-            print(f"Hay {variablecombinacionesValidas} combinaciones válidas:")
             listaComb = combinacionesValidas.copy()
+            listaCombOrdenada = []
             variableCurso = 0
             variableComb = 0
+            print(f"Hay {variablecombinacionesValidas} combinaciones válidas\n")
+            while True:
+                ordenar = input("Desea ordenar las combinaciones por:\n[1] Mayores horas en la mañana\n[2] Mayores horas en la tarde\n[3] Balanceo de horas\n[4] Sin horas extremas (6-7, 19-20)\n[5] Sin ordenar\n")
+                try:
+                    match ordenar:
+                        case "1": 
+                            ordenar = 2
+                            listaCombOrdenada = []
+                            variableCurso = 0
+                            horastotales = 0
+                            for i in listaComb:
+                                variableCurso = 0
+                                horasmañana = 0 
+                                for z in i:
+                                    variableCurso += 1
+                                    grupoActual = cursosDiccionario[f"curso{variableCurso}"]["grupos"][f"{z}"]
+                                    diaActual = grupoActual["dia"]
+                                    horass = grupoActual["hora"]
+                                    if type(horass[0]) == type([1,2]):
+                                        for ghora in horass:
+                                            a = int(ghora[0])
+                                            b = int(ghora[1])
+                                            if a and b in list(range(6,13)):
+                                                horas = [item for item in list(range(a, b + 1)) if item not in list(range(6,13))]
+                                                horasmañana += horas[-1] - horas[0]
+                                    else:
+                                        a = int(horass[0])
+                                        b = int(horass[1])
+                                        if a and b in list(range(6,13)):
+                                                horas = [item for item in list(range(a, b + 1)) if item not in list(range(6,13))]
+                                                horasmañana += horas[-1] - horas[0]
+                                horastotales += horasmañana
+                                listaCombOrdenada.append({"list": i, "ht": horasmañana})
+                            def func(e):
+                                return e["ht"]
+                            listaCombOrdenada.sort(key=func)
+                            listaCombOrdenada.reverse()
+                            if horastotales == 0:
+                                print("No hay clases en la tarde")
+                                ordenar = 5
+                            else:
+                                listaCombOrdenada2 = []
+                                for i in listaCombOrdenada:
+                                    listaCombOrdenada2.append(i["list"])
+                                listaComb = listaCombOrdenada2
+
+                        case "2":
+                            ordenar = 2
+                            listaCombOrdenada = []
+                            variableCurso = 0
+                            horastotales = 0
+                            for i in listaComb:
+                                variableCurso = 0
+                                horastarde = 0 
+                                for z in i:
+                                    variableCurso += 1
+                                    grupoActual = cursosDiccionario[f"curso{variableCurso}"]["grupos"][f"{z}"]
+                                    diaActual = grupoActual["dia"]
+                                    horass = grupoActual["hora"]
+                                    if type(horass[0]) == type([1,2]):
+                                        for ghora in horass:
+                                            a = int(ghora[0])
+                                            b = int(ghora[1])
+                                            if a and b in list(range(13,21)):
+                                                horas = [item for item in list(range(a, b + 1)) if item not in list(range(6,13))]
+                                                horastarde += horas[-1] - horas[0]
+                                    else:
+                                        a = int(horass[0])
+                                        b = int(horass[1])
+                                        if a and b in list(range(13,21)):
+                                                horas = [item for item in list(range(a, b + 1)) if item not in list(range(6,13))]
+                                                horastarde += horas[-1] - horas[0]
+                                horastotales += horastarde
+                                listaCombOrdenada.append({"list": i, "ht": horastarde})
+                            def func(e):
+                                return e["ht"]
+                            listaCombOrdenada.sort(key=func)
+                            listaCombOrdenada.reverse()
+                            if horastotales == 0:
+                                print("No hay clases en la tarde")
+                                ordenar = 5
+                            else:
+                                listaCombOrdenada2 = []
+                                for i in listaCombOrdenada:
+                                    listaCombOrdenada2.append(i["list"])
+                                listaComb = listaCombOrdenada2
+                        case "3":
+                            ordenar = 3
+                            print("Balanceo de horas")
+                        case "4":
+                            ordenar = 4
+                        case "5":
+                            print("Imprimiendo combinaciones sin ordenar...")
+                            ordenar = 5
+                        case _:
+                            raise Exception
+                    break
+                except:
+                    continue
+            if ordenar == 5:
+                listaComb = combinacionesValidas.copy()
+            variableCurso = 0
+            variableComb = 0
+
             for i in listaComb:
                 variableComb += 1
                 print(f"====COMBINACION {variableComb}====")
@@ -618,7 +723,7 @@ def generarHorarios(cursosDiccionario):
                 variableCurso = 0
             return combinacionesValidas
         
-        
+
 
 
 def pedirMenu():
