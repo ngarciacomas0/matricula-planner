@@ -1,6 +1,2 @@
 # matricula-planner
-git commit -a
-git push -u origin main
-
-
-exportar a excel con pandas
+Un planner de matrícula que te permite crear cursos, materias y exportar a excel.

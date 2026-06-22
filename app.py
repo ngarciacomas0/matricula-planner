@@ -5,6 +5,7 @@ import datetime
 cursosDiccionario = {}
 variableCursos = 1
 listaCursos = []
+listaprofes = []
 variableListaGrupo = 0
 listaNRC = []
 listacombinaciones = {}
@@ -41,9 +42,12 @@ def FormatoNombres(x):
     return b
     # Regresamos
 def RevisarMaterias(cursosDiccionario):
-    global variableCursos
+    global variableCursos, listaprofes
     z = False
     for index, curso in enumerate(cursosDiccionario):
+        for i in cursosDiccionario[curso]["grupos"]:
+            if cursosDiccionario[curso]["grupos"][i]["profesor"] not in listaprofes:
+                listaprofes.append(cursosDiccionario[curso]["grupos"][i]["profesor"])
         if cursosDiccionario[curso]["nombre"] not in listaCursos:
             listaCursos.append(cursosDiccionario[curso]["nombre"])
         if (f"curso{index + 1}") != curso:
@@ -224,6 +228,7 @@ def revisarGrupos(cursosDiccionario, materia):
 
 
 def agregarGrupo(cursosDiccionario, cursoSeleccionado):
+    global listaprofes
     # Accedemos al cursoSeleccionado y a los grupos para actualizarlo
     cursoActual = cursosDiccionario[cursoSeleccionado]
     variableListaGrupo = cursoActual["variablegrupos"]
@@ -231,7 +236,6 @@ def agregarGrupo(cursosDiccionario, cursoSeleccionado):
     dia = pedirDia()
     listaHoras = pedirHora()
     horaFormateada = listaHoras[1]
-    horaNormal = listaHoras[2]
     profesor = pedirProf()
     nrc = pedirNRC()
     nombreActual = cursoActual["nombre"]
@@ -452,7 +456,7 @@ def modificarNombre(cursosDiccionario,cursoSeleccionado):
     
 
 def generarHorarios(cursosDiccionario):
-    global variableCursos
+    global variableCursos, listaprofes
     listacursos = []
     combinacionesValidas = []
     variablecombinacionesValidas = 0
@@ -600,11 +604,10 @@ def generarHorarios(cursosDiccionario):
             variableComb = 0
             print(f"Hay {variablecombinacionesValidas} combinaciones válidas\n")
             while True:
-                ordenar = input("Desea ordenar las combinaciones por:\n[1] Mayores horas en la mañana\n[2] Mayores horas en la tarde\n[3] Balanceo de horas\n[4] Sin horas extremas (6-7, 19-20)\n[5] Sin ordenar\n")
+                ordenar = input("¿Qué desea hacer?:\n[1] Ordenar por mayores horas en la mañana\n[2] Ordenar por mayores horas en la tarde\n[3] Ordenar por horas balanceadas\n[4] Mostrar combinaciones en horas personalizadas\n[5] Mostrar combinaciones con profesor personalizado\n [6] Mostrar combinaciones sin ordenar")
                 try:
                     match ordenar:
                         case "1": 
-                            ordenar = 2
                             listaCombOrdenada = []
                             variableCurso = 0
                             horastotales = 0
@@ -636,7 +639,8 @@ def generarHorarios(cursosDiccionario):
                             listaCombOrdenada.reverse()
                             if horastotales == 0:
                                 print("No hay clases en la mañana. Imprimiendo combinaciones sin ordenar...")
-                                ordenar = 5
+                                ordenar = False
+                    
                             else:
                                 listaCombOrdenada2 = []
                                 for i in listaCombOrdenada:
@@ -644,7 +648,6 @@ def generarHorarios(cursosDiccionario):
                                 listaComb = listaCombOrdenada2
 
                         case "2":
-                            ordenar = 2
                             listaCombOrdenada = []
                             variableCurso = 0
                             horastotales = 0
@@ -677,14 +680,13 @@ def generarHorarios(cursosDiccionario):
                             listaCombOrdenada.reverse()
                             if horastotales == 0:
                                 print("No hay clases en la tarde. Imprimiendo combinaciones sin ordenar...\n")
-                                ordenar = 5
+                                ordenar = False
                             else:
                                 listaCombOrdenada2 = []
                                 for i in listaCombOrdenada:
                                     listaCombOrdenada2.append(i["list"])
                                 listaComb = listaCombOrdenada2
                         case "3":
-                            ordenar = 2
                             listaCombOrdenada = []
                             variableCurso = 0
                             horastotales = 0
@@ -738,44 +740,77 @@ def generarHorarios(cursosDiccionario):
                                     listaCombOrdenada2.append(i["list"])
                             listaComb = listaCombOrdenada2
                         case "4":
-                            horasextremas = [6,7,19,20]
+                            variableCurso = 0
+                            nuevahora = pedirHora()
+                            nuevahoraFormateada = nuevahora[1]
+                            listahoracustom = list(range(int(nuevahoraFormateada[0]), int(nuevahoraFormateada[1]) + 1))
                             for i in listaComb:
+                                variableCurso = 0
                                 eliminado = False
                                 for z in i:
+                                    variableCurso += 1
                                     if eliminado == True:
                                         continue
+                                    grupoActual = cursosDiccionario[f"curso{variableCurso}"]["grupos"][f"{z}"]
                                     horass = grupoActual["hora"]
                                     if isinstance(horass[0], list):
                                         for i in horass:
                                             a = i[0]
                                             b = i[1]
                                             c = list(range(int(a), int(b) + 1))
-                                            for element in horasextremas:
-                                                if element in c:
-                                                    listaComb.remove(i) 
+                                            for element in listahoracustom:
+                                                if element not in c:
+                                                    listaComb.remove(i)
+                                                    eliminado = True 
                                                     break
                                     else:
                                         a = horass[0]
                                         b = horass[1]
                                         c = list(range(int(a), int(b) + 1))
-                                        for element in horasextremas:
-                                            if element in c:
+                                        for element in listahoracustom:
+                                            if element not in c:
                                                 listaComb.remove(i)
                                                 eliminado = True
                                                 break
                             if listaComb == []:
-                                print("Todas las combinaciones tienen horas extremas. Imprimiento combinaciones sin ordenar...\n")
-                                ordenar = 5
-                                        
+                                print("Ninguna combinacion coincide con el rango de horas. Imprimiento combinaciones normales...\n")
+                                ordenar = False
                         case "5":
-                            print("Imprimiendo combinaciones sin ordenar...\n")
-                            ordenar = 5
+                            imprimirMaterias(listaCursos)
+                            listaseleccion = seleccionarMateria(cursosDiccionario, listaCursos)
+                            listaprofesActuales = []
+                            seleccion = listaseleccion[0]
+                            variableProf = 0
+                            for i in cursosDiccionario[seleccion]["grupos"]:
+                                variableProf += 1
+                                profesorActual = cursosDiccionario[seleccion]["grupos"][i]["profesor"]
+                                listaprofesActuales.append(profesorActual)
+                                print(f"[{variableProf}] {profesorActual}")
+                            profeSeleccionado = int(input("Seleccione un profesor:\n"))
+                            try:
+                                profeSeleccionado = listaprofesActuales[profeSeleccionado - 1]
+                            except:
+                                print("Inválido. Digite un número válido")
+                                raise Exception 
+                            nuevalistaComb = listaComb.copy()
+                            for i in listaComb:
+                                eliminado = False
+                                for index, z in enumerate(i):
+                                    if eliminado == True:
+                                        continue
+                                    if f"curso{index + 1}" == listaseleccion[0]:
+                                        if cursosDiccionario[f"curso{index + 1}"]["grupos"][f"{z}"]["profesor"] != profeSeleccionado:
+                                            eliminado = True
+                                            nuevalistaComb.remove(i)
+                            listaComb = nuevalistaComb 
+                        case "6":
+                            ordenar = False
                         case _:
                             raise Exception
                     break
                 except:
                     continue
-            if ordenar == 5:
+            if ordenar == False:
                 listaComb = combinacionesValidas.copy()
             
             def imprimirCombinaciones(cursosDiccionario, listaComb, listaCursos):
@@ -792,16 +827,16 @@ def generarHorarios(cursosDiccionario):
                 ws.column_dimensions["B"].width = 11
                 ws.column_dimensions["C"].width = 11
                 ws.column_dimensions["D"].width = 11
-                ws.column_dimensions["E"].width = 11
+                ws.column_dimensions["E"].width = 30
+                ws.column_dimensions["F"].width = 12
 
-
-                ws.column_dimensions["F"].width = 20
-                ws.column_dimensions["G"].width = 20
                 ws.column_dimensions["H"].width = 20
                 ws.column_dimensions["I"].width = 20
                 ws.column_dimensions["J"].width = 20
                 ws.column_dimensions["K"].width = 20
                 ws.column_dimensions["L"].width = 20
+                ws.column_dimensions["M"].width = 20
+                ws.column_dimensions["N"].width = 20
                 listahoras = list(range(6, 21))
                 ws.title = "Combinaciones"
                 variableCurso = 0
@@ -816,7 +851,7 @@ def generarHorarios(cursosDiccionario):
                     ws[f'A{variableSheet}'].fill = yellow_fill
                     ws[f'A{variableSheet}'].font = red_font
                     iniciotable = variableSheet
-                    table2 = Table(displayName=f"horario{variableComb}", ref=f"F{iniciotable + 1}:L{iniciotable + 16}")
+                    table2 = Table(displayName=f"{variableComb}", ref=f"H{iniciotable + 1}:N{iniciotable + 16}")
                     style = TableStyleInfo(
                         name="TableStyleMedium9",  
                         showFirstColumn=False,
@@ -826,42 +861,48 @@ def generarHorarios(cursosDiccionario):
                     )
                     table2.tableStyleInfo = style
                     ws.add_table(table2)
-                    ws[f'F{variableSheet+1}'] = f"HORAS"
-                    ws[f"F{variableSheet+2}"].value = "6:00 AM - 7:00 AM"
-                    ws[f"F{variableSheet+3}"].value = "7:00 AM - 8:00 AM"
-                    ws[f"F{variableSheet+4}"].value = "8:00 AM - 9:00 AM"
-                    ws[f"F{variableSheet+5}"].value = "9:00 AM - 10:00 AM"
-                    ws[f"F{variableSheet+6}"].value = "10:00 AM - 11:00 AM"
-                    ws[f"F{variableSheet+7}"].value = "11:00 AM - 12:00 PM"
-                    ws[f"F{variableSheet+8}"].value = "12:00 PM - 1:00 PM"
-                    ws[f"F{variableSheet+9}"].value = "1:00 PM  - 2:00 PM"
-                    ws[f"F{variableSheet+10}"].value = "2:00 PM - 3:00 PM"
-                    ws[f"F{variableSheet+11}"].value = "3:00 PM - 4:00 PM"
-                    ws[f"F{variableSheet+12}"].value = "4:00 PM - 5:00 PM"
-                    ws[f"F{variableSheet+13}"].value = "5:00 PM - 6:00 PM"
-                    ws[f"F{variableSheet+14}"].value = "6:00 PM - 7:00 PM"
-                    ws[f"F{variableSheet+15}"].value = "7:00 PM - 8:00 PM"
+                    ws[f'H{variableSheet+1}'] = f"HORAS"
+                    ws[f"H{variableSheet+2}"].value = "6:00 AM - 7:00 AM"
+                    ws[f"H{variableSheet+3}"].value = "7:00 AM - 8:00 AM"
+                    ws[f"H{variableSheet+4}"].value = "8:00 AM - 9:00 AM"
+                    ws[f"H{variableSheet+5}"].value = "9:00 AM - 10:00 AM"
+                    ws[f"H{variableSheet+6}"].value = "10:00 AM - 11:00 AM"
+                    ws[f"H{variableSheet+7}"].value = "11:00 AM - 12:00 PM"
+                    ws[f"H{variableSheet+8}"].value = "12:00 PM - 1:00 PM"
+                    ws[f"H{variableSheet+9}"].value = "1:00 PM  - 2:00 PM"
+                    ws[f"H{variableSheet+10}"].value = "2:00 PM - 3:00 PM"
+                    ws[f"H{variableSheet+11}"].value = "3:00 PM - 4:00 PM"
+                    ws[f"H{variableSheet+12}"].value = "4:00 PM - 5:00 PM"
+                    ws[f"H{variableSheet+13}"].value = "5:00 PM - 6:00 PM"
+                    ws[f"H{variableSheet+14}"].value = "6:00 PM - 7:00 PM"
+                    ws[f"H{variableSheet+15}"].value = "7:00 PM - 8:00 PM"
                     
                
 
 
-                    ws[f'G{variableSheet+1}'] = f"LUNES"
-                    ws[f'H{variableSheet+1}'] = f"MARTES"
-                    ws[f'I{variableSheet+1}'] = f"MIERCOLES"
-                    ws[f'J{variableSheet+1}'] = f"JUEVES"
-                    ws[f'K{variableSheet+1}'] = f"VIERNES"
-                    ws[f'L{variableSheet+1}'] = f"SABADO"
+                    ws[f'I{variableSheet+1}'] = f"LUNES"
+                    ws[f'J{variableSheet+1}'] = f"MARTES"
+                    ws[f'K{variableSheet+1}'] = f"MIERCOLES"
+                    ws[f'L{variableSheet+1}'] = f"JUEVES"
+                    ws[f'M{variableSheet+1}'] = f"VIERNES"
+                    ws[f'N{variableSheet+1}'] = f"SABADO"
                     rango = list(range(iniciotable + 1, iniciotable + 17))
                     variableSheet += 1
                     ws[f'A{variableSheet}'] = f"MATERIAS"
                     ws[f'B{variableSheet}'] = f"GRUPOS"
                     ws[f'C{variableSheet}'] = f"HORA I"
                     ws[f'D{variableSheet}'] = f"HORA F"
+                    ws[f'E{variableSheet}'] = f"PROFESOR"
+                    ws[f'F{variableSheet}'] = f"NRC"
                     for z in i:
                         variableSheet += 1
                         variableCurso += 1
                         grupoActual = cursosDiccionario[f"curso{variableCurso}"]["grupos"][f"{z}"]
                         cursoActual = listaCursos[variableCurso - 1]
+                        profesorActual = grupoActual["profesor"]
+                        nrcActual = grupoActual["nrc"]
+                        ws[f'E{variableSheet}'] = f"{profesorActual}"
+                        ws[f'F{variableSheet}'] = f"{nrcActual}"
                         ws[f'A{variableSheet}'] = f"{cursoActual.upper()}:"
                         print(f"{cursoActual}:")
 
@@ -879,20 +920,22 @@ def generarHorarios(cursosDiccionario):
                                 horaActual = horass[index]
                                 horaActualInvertida = invertirFormatoHora(horaActual)
                                 ws[f"A{variableSheet}"] = "----------------------------"
+                                ws[f"E{variableSheet}"] = "-----------------"
+                                ws[f"F{variableSheet}"] = "-------"
                                 ws[f"B{variableSheet}"] = f"{dia}"
                                 match dia:
                                     case "Lunes": 
-                                        diatabla = "G"
-                                    case "Martes": 
-                                        diatabla = "H"
-                                    case "Miercoles": 
                                         diatabla = "I"
-                                    case "Jueves": 
+                                    case "Martes": 
                                         diatabla = "J"
-                                    case "Viernes": 
+                                    case "Miercoles": 
                                         diatabla = "K"
-                                    case "Sabado": 
+                                    case "Jueves": 
                                         diatabla = "L"
+                                    case "Viernes": 
+                                        diatabla = "M"
+                                    case "Sabado": 
+                                        diatabla = "N"
 
                                 for index, value in enumerate(list(range(int(horaActual[0]), int(horaActual[1])))):
                                     indexes = listahoras.index(value)
@@ -909,17 +952,17 @@ def generarHorarios(cursosDiccionario):
                         else:
                             match diaActual:
                                     case "Lunes": 
-                                        diatabla = "G"
-                                    case "Martes": 
-                                        diatabla = "H"
-                                    case "Miercoles": 
                                         diatabla = "I"
-                                    case "Jueves": 
+                                    case "Martes": 
                                         diatabla = "J"
-                                    case "Viernes": 
+                                    case "Miercoles": 
                                         diatabla = "K"
-                                    case "Sabado": 
+                                    case "Jueves": 
                                         diatabla = "L"
+                                    case "Viernes": 
+                                        diatabla = "M"
+                                    case "Sabado": 
+                                        diatabla = "N"
 
                             for index, value in enumerate(list(range(int(horass[0]), int(horass[1])))):
                                     indexes = listahoras.index(value)
@@ -930,6 +973,8 @@ def generarHorarios(cursosDiccionario):
                             variableSheet += 1
                             horaActual = invertirFormatoHora(horass)
                             ws[f"A{variableSheet}"] = "----------------------------"
+                            ws[f"E{variableSheet}"] = "-----------------"
+                            ws[f"F{variableSheet}"] = "-------"
                             ws[f"B{variableSheet}"] = f"{diaActual}"
                             ws[f"C{variableSheet}"].value = datetime.time(int(horass[0]), 0, 0)
                             ws[f"C{variableSheet}"].number_format = 'hh:mm AM/PM'
@@ -938,7 +983,7 @@ def generarHorarios(cursosDiccionario):
                             a += (f"{diaActual}, de {horaActual}")
                         print(a)
                     variableCurso = 0
-                    table = Table(displayName=f"{iniciotable + 1}", ref=f"A{iniciotable + 1}:D{variableSheet}")
+                    table = Table(displayName=f"{variableSheet}", ref=f"A{iniciotable + 1}:F{variableSheet}")
                     style = TableStyleInfo(
                         name="TableStyleMedium9",  
                         showFirstColumn=False,
