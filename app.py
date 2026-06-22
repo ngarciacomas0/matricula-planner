@@ -604,7 +604,7 @@ def generarHorarios(cursosDiccionario):
             variableComb = 0
             print(f"Hay {variablecombinacionesValidas} combinaciones válidas\n")
             while True:
-                ordenar = input("¿Qué desea hacer?:\n[1] Ordenar por mayores horas en la mañana\n[2] Ordenar por mayores horas en la tarde\n[3] Ordenar por horas balanceadas\n[4] Mostrar combinaciones en horas personalizadas\n[5] Mostrar combinaciones con profesor personalizado\n [6] Mostrar combinaciones sin ordenar")
+                ordenar = input("¿Qué desea hacer?:\n[1] Ordenar por mayores horas en la mañana\n[2] Ordenar por mayores horas en la tarde\n[3] Ordenar por horas balanceadas\n[4] Mostrar combinaciones en horas personalizadas\n[5] Mostrar combinaciones con profesor personalizado\n[6] Mostrar combinaciones sin ordenar")
                 try:
                     match ordenar:
                         case "1": 
